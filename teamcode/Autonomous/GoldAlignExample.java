@@ -27,29 +27,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@TeleOp(name="GoldAlign Example", group="DogeCV")
+@Autonomous(name="GoldAlign Example", group="DogeCV")
 
-public class GoldAlignExample extends OpMode
-{
+public class GoldAlignExample extends LinearOpMode {
     private GoldAlignDetector detector;
+    private DcMotor rack;
+    private DcMotor frontLeft;
+    private DcMotor left;
+    private DcMotor frontRight;
+    private DcMotor right;
+    private DcMotor arm;
 
 
     @Override
-    public void init() {
+    public void runOpMode() {
         telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
 
+
         detector = new GoldAlignDetector();
-        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance(), 1, false);
         detector.useDefaults();
 
         // Optional Tuning
@@ -66,34 +76,188 @@ public class GoldAlignExample extends OpMode
 
         detector.enable();
 
+        rack = hardwareMap.dcMotor.get("rack");
+        frontLeft = hardwareMap.dcMotor.get("frontLeft");
+        left = hardwareMap.dcMotor.get("left");
+        frontRight = hardwareMap.dcMotor.get("frontRight");
+        right = hardwareMap.dcMotor.get("right");
+        arm = hardwareMap.dcMotor.get("arm");
 
+
+
+        waitForStart();
+        if (opModeIsActive()) {
+            telemetry.addData("IsFound", detector.isFound()); // Is the gold mineral on the screen
+            telemetry.addData("X Pos", detector.getXPosition()); // Gold X pos.
+
+            //unlatch section
+            rack.setPower(-1);
+            sleep(1400);
+            rack.setPower(0);
+            sleep(200);
+            /*
+            frontLeft.setPower(0.2);
+            left.setPower(-0.2);
+            frontRight.setPower(0.2);
+            right.setPower(-0.2);
+            sleep(400);
+            frontLeft.setPower(0);
+            left.setPower(0);
+            frontRight.setPower(0);
+            right.setPower(0);
+            */
+
+            // get into position to start sampling
+            moveLeft(0.2, 400);
+            sleep(200);
+            moveForward(.2, 400);
+            sleep(200);
+            moveRight(.2, 200);
+            sleep(200);
+            moveForward(.2, 500);
+            sleep(200);
+            // time taken to move gold block
+            int pushTime = 1100;
+            // sleep times between motor movements
+            int sleepTime = 250;
+            //Check center for cube
+            if(detector.isFound()) {
+                moveForward(.2, pushTime);
+                sleep(sleepTime);
+                moveBackward(.2, pushTime);
+                sleep(sleepTime);
+                moveLeft(.4, 1300);
+            } else {
+                // get into position to check right cube
+                moveRight(.2, 1800);
+                sleep(500);
+                if (detector.isFound()) {
+                    moveForward(.2, pushTime);
+                    sleep(sleepTime);
+                    moveBackward(.2, pushTime);
+                    sleep(sleepTime);
+                    moveLeft(.4, 2150);
+                } else {
+                    // assume its the left cube
+                    moveLeft(.4, 1600);
+                    sleep(sleepTime);
+                    moveForward(.2, pushTime);
+                    sleep(sleepTime);
+                    moveBackward(.2, pushTime);
+                    sleep(sleepTime);
+                    moveLeft(.2,1200);
+                }
+            }
+
+            // depot section
+            sleep(sleepTime);
+            moveLeft(0.2,600);
+            sleep(sleepTime);
+            moveForward(0.2,300);
+            sleep(sleepTime);
+            rotateLeft(0.4,1120);
+            sleep(sleepTime);
+            moveRight(0.4,1100);
+            sleep(sleepTime);
+            moveLeft(0.2,200);
+            sleep(sleepTime);
+            moveBackward(0.6,1000);
+
+            //Drop down flag
+            sleep(200);
+            arm.setPower(-0.75);
+            sleep(250);
+            arm.setPower(0);
+
+
+            //Go away to end
+            sleep(400);
+            frontLeft.setPower(-1);
+            left.setPower(-1);
+            frontRight.setPower(0.95);
+            right.setPower(0.95);
+            sleep(1900);
+            frontLeft.setPower(0);
+            left.setPower(0);
+            frontRight.setPower(0);
+            right.setPower(0);
+
+
+
+
+
+            telemetry.update();
+            detector.disable();
+        }
+        }
+
+    public void moveLeft(double speed, int time) {
+        frontLeft.setPower(speed);
+        left.setPower(-speed);
+        frontRight.setPower(speed);
+        right.setPower(-speed);
+        sleep(time);
+        frontLeft.setPower(0);
+        left.setPower(0);
+        frontRight.setPower(0);
+        right.setPower(0);
+    }
+    public void moveRight(double speed, int time) {
+        frontLeft.setPower(-speed);
+        left.setPower(speed);
+        frontRight.setPower(-speed);
+        right.setPower(speed);
+        sleep(time);
+        frontLeft.setPower(0);
+        left.setPower(0);
+        frontRight.setPower(0);
+        right.setPower(0);
+    }
+    public void moveBackward(double speed, int time) {
+        frontLeft.setPower(speed);
+        left.setPower(speed);
+        frontRight.setPower(-speed);
+        right.setPower(-speed);
+        sleep(time);
+        frontLeft.setPower(0);
+        left.setPower(0);
+        frontRight.setPower(0);
+        right.setPower(0);
+    }
+    public void moveForward(double speed, int time) {
+        frontLeft.setPower(-speed);
+        left.setPower(-speed);
+        frontRight.setPower(speed);
+        right.setPower(speed);
+        sleep(time);
+        frontLeft.setPower(0);
+        left.setPower(0);
+        frontRight.setPower(0);
+        right.setPower(0);
     }
 
-    @Override
-    public void init_loop() {
+    public void rotateLeft(double speed, int time) {
+        frontLeft.setPower(speed);
+        left.setPower(speed);
+        frontRight.setPower(speed);
+        right.setPower(speed);
+        sleep(time);
+        frontLeft.setPower(0);
+        left.setPower(0);
+        frontRight.setPower(0);
+        right.setPower(0);
     }
 
-    /*
-     * Code to run ONCE when the driver hits PLAY
-     */
-    @Override
-    public void start() {
-
-    }
-
-
-    @Override
-    public void loop() {
-        telemetry.addData("IsAligned" , detector.getAligned()); // Is the bot aligned with the gold mineral
-        telemetry.addData("X Pos" , detector.getXPosition()); // Gold X pos.
-    }
-
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
-    @Override
-    public void stop() {
-        detector.disable();
+    public void rotateRight(double speed, int time) {
+        frontLeft.setPower(-speed);
+        left.setPower(-speed);
+        frontRight.setPower(-speed);
+        right.setPower(-speed);
+        sleep(time);
+        frontLeft.setPower(0);
+        left.setPower(0);
+        frontRight.setPower(0);
+        right.setPower(0);
     }
 
 }

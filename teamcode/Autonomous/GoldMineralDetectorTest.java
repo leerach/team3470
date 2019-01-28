@@ -32,15 +32,24 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 
+@Disabled
 @TeleOp(name="GoldMineralDetectorTest", group="DogeCV")
-
 public class GoldMineralDetectorTest extends OpMode
 {
     private GoldMineralDetector detector;
+
+    private DcMotor rack;
+    private DcMotor frontLeft;
+    private DcMotor left;
+    private DcMotor frontRight;
+    private DcMotor right;
 
 
     @Override
@@ -62,6 +71,7 @@ public class GoldMineralDetectorTest extends OpMode
         detector.ratioScorer.perfectRatio = 1.0;
 
         detector.enable();
+
 
 
     }

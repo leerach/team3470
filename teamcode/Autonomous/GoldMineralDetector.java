@@ -22,7 +22,6 @@ import java.util.List;
 /**
  * Created by Victo on 9/10/2018.
  */
-
 public class GoldMineralDetector extends DogeCVDetector {
 
     // Defining Mats to be used.

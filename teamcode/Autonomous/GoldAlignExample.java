@@ -41,7 +41,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name="GoldAlign Example", group="DogeCV")
+@Autonomous(name="Depot Autonomous", group="DogeCV")
 
 public class GoldAlignExample extends LinearOpMode {
     private GoldAlignDetector detector;
@@ -110,14 +110,14 @@ public class GoldAlignExample extends LinearOpMode {
             // get into position to start sampling
             moveLeft(0.2, 400);
             sleep(200);
-            moveForward(.2, 400);
+            moveForward(.2, 500);
             sleep(200);
             moveRight(.2, 200);
             sleep(200);
             moveForward(.2, 500);
             sleep(200);
             // time taken to move gold block
-            int pushTime = 1100;
+            int pushTime =800;
             // sleep times between motor movements
             int sleepTime = 250;
             //Check center for cube

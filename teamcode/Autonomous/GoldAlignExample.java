@@ -51,6 +51,7 @@ public class GoldAlignExample extends LinearOpMode {
     private DcMotor frontRight;
     private DcMotor right;
     private DcMotor arm;
+    private DcMotor flag;
 
 
     @Override
@@ -82,6 +83,7 @@ public class GoldAlignExample extends LinearOpMode {
         frontRight = hardwareMap.dcMotor.get("frontRight");
         right = hardwareMap.dcMotor.get("right");
         arm = hardwareMap.dcMotor.get("arm");
+        flag = hardwareMap.dcMotor.get("flag");
 
 
 
@@ -165,9 +167,9 @@ public class GoldAlignExample extends LinearOpMode {
 
             //Drop down flag
             sleep(200);
-            arm.setPower(-0.75);
+            flag.setPower(-0.75);
             sleep(250);
-            arm.setPower(0);
+            flag.setPower(0);
 
 
             //Go away to end

@@ -1,79 +1,66 @@
-
-package org.firstinspires.ftc.teamcode;
-        import com.disnodeteam.dogecv.CameraViewDisplay;
-        import com.disnodeteam.dogecv.DogeCV;
-        import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
-        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-        import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-        import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
-        import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-        import com.qualcomm.robotcore.hardware.DcMotor;
-        import com.qualcomm.robotcore.hardware.Servo;
-
-        import org.firstinspires.ftc.robotcore.external.ClassFactory;
-        import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-        import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-        import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-        import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-        import com.disnodeteam.dogecv.CameraViewDisplay;
-        import com.disnodeteam.dogecv.DogeCV;
-        import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
-        import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
-        import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-/**
- * Created by Rachel on 10/13/2018.
+/* Copyright (c) 2017 FIRST. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@Autonomous(name = "Crater Autonomous")
+package org.firstinspires.ftc.teamcode;
 
-public class CraterAuto extends LinearOpMode{
+import com.disnodeteam.dogecv.CameraViewDisplay;
+import com.disnodeteam.dogecv.DogeCV;
+import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
+import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
+
+@Autonomous(name="Crater Autonomous", group="DogeCV")
+
+public class CraterAutonomous extends LinearOpMode {
     private GoldAlignDetector detector;
+    private DcMotor rack;
+    private DcMotor frontLeft;
+    private DcMotor left;
+    private DcMotor frontRight;
+    private DcMotor right;
+    private DcMotor arm;
+    private DcMotor flag;
 
-    //declare motors
-    private DcMotor frontLeft, frontRight, rearLeft, rearRight, extend, intake;
-    private Servo arm;
-
-    // declare variables for Mecanum wheel drive movement (left, right, diagonal, forward etc.)
-    double LeftFrontLeft, LeftFrontRight, LeftRearLeft, LeftRearRight;
-    double leftValue, rightValue;
-    double hmfL, hmfR, hmrL, hmrR;
-    double intakeMult;
-    double extendArm = 0;
-    double xPosOfBlock = detector.getXPosition();
-
-    //-2400 for 90 degree turn
-    final double counterClockwiseTurn = -2440;
-    final double motorPower = 0.1;
-    final double motorPowerSlow = 0.2;
-
-    boolean blockFound = false;
-    boolean blockAligned = detector.getAligned();
 
     @Override
-    public void runOpMode() throws InterruptedException
-    {
-        // initialize motors
-        frontLeft = hardwareMap.dcMotor.get("fl");
-        frontRight = hardwareMap.dcMotor.get("fr");
-        rearLeft = hardwareMap.dcMotor.get("rl");
-        rearRight = hardwareMap.dcMotor.get("rr");
-
-        // name the lift and intake item motors
-        extend = hardwareMap.dcMotor.get("extend");
-        intake = hardwareMap.dcMotor.get("intake");
-
-        // name the servos
-        arm = hardwareMap.servo.get("arm");
-        arm.setPosition(0);
-
+    public void runOpMode() {
         telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
 
+
         detector = new GoldAlignDetector();
-        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance(), 1, false);
         detector.useDefaults();
 
         // Optional Tuning
@@ -88,80 +75,19 @@ public class CraterAuto extends LinearOpMode{
         detector.ratioScorer.weight = 5;
         detector.ratioScorer.perfectRatio = 1.0;
 
-        waitForStart();
-
         detector.enable();
 
-        while(opModeIsActive())
-        {
-            //detach();
-            dataLoop();
-            driveToBlock();
-            turnCounterClockwise(motorPowerSlow);
-            
-
-            telemetry.update();
-
-            detector.disable();
-            allStop();
-        }
+        rack = hardwareMap.dcMotor.get("rack");
+        frontLeft = hardwareMap.dcMotor.get("frontLeft");
+        left = hardwareMap.dcMotor.get("left");
+        frontRight = hardwareMap.dcMotor.get("frontRight");
+        right = hardwareMap.dcMotor.get("right");
+        arm = hardwareMap.dcMotor.get("arm");
+        flag = hardwareMap.dcMotor.get("flag");
 
 
-    }
 
-    public void dataLoop() {
-        telemetry.addData("IsAligned" , detector.getAligned()); // Is the bot aligned with the gold mineral
-        telemetry.addData("X Pos" , detector.getXPosition()); // Gold X pos.
-    }
-
-    public void driveToBlock() {
-
-        rearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rearLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        if (blockAligned)
-            while (blockAligned) {
-                goYdirection(motorPower);
-            }
-        else
-            while((rearLeft.getCurrentPosition() + rearRight.getCurrentPosition())/2 < xPosOfBlock){
-            goXdirection(motorPowerSlow);
-            telemetry.update();
-            }
-            while (rearLeft.getCurrentPosition() + rearRight.getCurrentPosition()/2 > xPosOfBlock){
-            goXdirection(-motorPowerSlow);
-            telemetry.update();
-            }
-    }
-   /* public void detach(){
-
-    }
-    */
-
-    public void allStop() {
-        frontLeft.setPower(0);
-        rearLeft.setPower(0);
-        frontRight.setPower(0);
-        rearRight.setPower(0);
-    }
-
-    public void goXdirection(double powermotor) {  // x axis direction move: power>0 x axis postive ;power<0, x axis negative
-        frontLeft.setPower(-powermotor);
-        rearLeft.setPower(powermotor);
-        frontRight.setPower(-powermotor);
-        rearRight.setPower(powermotor);
-    }
-
-    public void goYdirection(double powermotor) { // Y axis direction move: Power <0 yaxis postion; power >0,Y axis negative
-        frontLeft.setPower(powermotor);
-        rearLeft.setPower(powermotor);
-        frontRight.setPower(-powermotor);
-        rearRight.setPower(-powermotor);
-    }
-
-    public void turnCounterClockwise(double powermotor) {
-        frontLeft.setPower(-powermotor);
-        rearLeft.setPower(-powermotor);
-        frontRight.setPower(-powermotor);
-        rearRight.setPower(-powermotor);
-    }
-}
+        waitForStart();
+        if (opModeIsActive()) {
+            telemetry.addData("IsFound", detector.isFound()); // Is the gold mineral on the screen
+            telemetry.addData("X Pos", detector.getXPosition()); // Gold X pos.

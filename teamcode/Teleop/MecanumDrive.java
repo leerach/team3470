@@ -3,236 +3,201 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.robotcore.hardware.Servo;
 
-/**
- * Created by Rachel on 9/28/2018.
- */
-@TeleOp(name = "Mecanum Drive")
+@TeleOp(name = "Use this code for the competition")
+
+
 public class MecanumDrive extends LinearOpMode {
 
-    // declare motors
-    private DcMotor frontLeft, frontRight, rearLeft, rearRight;
-    private Servo
-    //extend, intake;
-    //private Servo arm;
+    private DcMotor rightMotor, leftMotor, frontRightMotor, frontLeftMotor, rack, arm;
+    //  private DcMotor intake, extension;
 
-    // declare variables for Mecanum wheel drive movement (left, right, diagonal, forward etc.)
-    double LeftFrontLeft, LeftFrontRight, LeftRearLeft, LeftRearRight;
-    double leftValue, rightValue;
-    double hmfL, hmfR, hmrL, hmrR;
-  //  double intakeMult;
-    double extendArm = 0;
-
-    double motorLimitMult = -0.5;
-
-    //declare encoder test
-    double encoderRunTest = 0;
-
-    @Override
-    public void runOpMode() throws InterruptedException
-    {
-        // initialize motors
-        frontLeft = hardwareMap.dcMotor.get("fl");
-        frontRight = hardwareMap.dcMotor.get("fr");
-        rearLeft = hardwareMap.dcMotor.get("rl");
-        rearRight = hardwareMap.dcMotor.get("rr");
-
-        //reverse motors to match Y-axis in left joystick so forward on joystick moves robot forward
-        rearLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+    // controller state values
+    double[] values = {
+            0,  //0 Left Stick x
+            0,  //1 Right Stick x
+            0,  //2 Left Trigger
+            0,  //3 Right Trigger
+            0,  //4 Left Bumper
+            0,  //5 Right Bumper
+            0,  //6 A
+            0,  //7 B
+            0,  //8 X
+            0,  //9 Y
+            0,  //10 right stick button
+            0,  //11 left stick button
+            0,  //12 dpad left
+            0,  //13 dpad right
+            0,  //14 dpad up
+            0,  //15 dpad down
+            0,  //16 Left Stick y
+            0,  //17 Right Stick y
+            0,  //18 Start
+            0,  //19 Back
+    };
 
 
-      // name the lift and intake item motors
-
-             //  intake = hardwareMap.dcMotor.get("intake");
-
-        // name the servos
-        arm = hardwareMap.servo.get("arm");
-        arm.setPosition(0);
+    public void runOpMode() throws InterruptedException {
+        initialize();
 
         waitForStart();
-
-        while(opModeIsActive())
-        {
-            loopedDrive();
+        while (opModeIsActive()) {
+            loopCode();
         }
     }
 
-    private void loopedDrive() {
-        // to intake the items
-        //intakeMult = -gamepad1.right_trigger * 1;
 
-        // to lift the arm up and back
-       /*
-        if(gamepad1.dpad_up)
-        {
-            arm.setPosition(1);
-        }
-        else if(gamepad1.dpad_down)
-        {
-            arm.setPosition(0);
-        }
+    public void initialize() {
 
-        // to extend arm (adjust numbers as needed)
-        if(gamepad1.left_bumper)
-        {
-            extendArm = 0.3;
-        }
-        else if(gamepad1.right_bumper)
-        {
-            extendArm = -0.3;
-        }
+        // name drive motors
+        rightMotor = hardwareMap.dcMotor.get("right");  // rightMotor named (right)
+        rightMotor.setDirection(DcMotor.Direction.REVERSE);  // reverse direction of right motor
+        leftMotor = hardwareMap.dcMotor.get("left");   // leftMotor named (left)
+        rightMotor.setPower(0);
+        leftMotor.setPower(0);
+
+        // name REV Expansion Hub 1 motors
+
+        rack = hardwareMap.dcMotor.get("rack");
+        frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        frontLeftMotor.setPower(0);
+        frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        frontRightMotor.setDirection(DcMotor.Direction.REVERSE);  // reverse direction of right motor
+        frontRightMotor.setPower(0);
+        rack.setPower(0);
+        arm = hardwareMap.dcMotor.get("arm");
+        arm.setPower(0);
+/*
+        // name the motors on REV Expansion 2 hub
+        intake = hardwareMap.dcMotor.get("intake");
+        extension = hardwareMap.dcMotor.get("extension");
+        intake.setPower(0);
+        extension.setPower(0);
+        */
+    }
+
+    public void updateControllerState() {
+        values[0] = gamepad1.left_stick_x;
+        values[1] = gamepad1.right_stick_x;
+        values[2] = gamepad1.left_trigger;
+        values[3] = gamepad1.right_trigger;
+        values[4] = convertBoolean(gamepad1.left_bumper);
+        values[5] = convertBoolean(gamepad1.right_bumper);
+        values[6] = convertBoolean(gamepad1.a);
+        values[7] = convertBoolean(gamepad1.b);
+        values[8] = convertBoolean(gamepad1.x);
+        values[9] = convertBoolean(gamepad1.y);
+        values[10] = convertBoolean(gamepad1.right_stick_button);
+        values[11] = convertBoolean(gamepad1.left_stick_button);
+        values[12] = convertBoolean(gamepad1.dpad_left);
+        values[13] = convertBoolean(gamepad1.dpad_right);
+        values[14] = convertBoolean(gamepad1.dpad_up);
+        values[15] = convertBoolean(gamepad1.dpad_down);
+        values[16] = gamepad1.left_stick_y;
+        values[17] = gamepad1.right_stick_y;
+    }
+
+    // Converts booleans to floats (true = 1, false = 0)
+    public double convertBoolean(boolean x){
+        if(x)
+            return 1;
         else
-        {
-            extendArm = 0;
+            return 0;
+    }
+    //controls are set here and algorithms for those controls
+    public void setRobotState() {
+
+        // Drive System Controls
+        double r = Math.hypot(values[0], values[16]);
+        double robotAngle = Math.atan2(values[16], values[0]) - Math.PI / 4;
+        double rightX = values[1];
+        final double v1 = r * Math.cos(robotAngle) + rightX;
+        final double v2 = r * Math.sin(robotAngle) - rightX;
+        final double v3 = r * Math.sin(robotAngle) + rightX;
+        final double v4 = r * Math.cos(robotAngle) - rightX;
+
+        frontLeftMotor.setPower(v1);
+        frontRightMotor.setPower(v2);
+        leftMotor.setPower(v3);
+        rightMotor.setPower(v4);
+
+
+        //Rack controls values[4] /left bumper values[5] / right bumper
+        double liftRack = 0.35;
+        if(values[4] == 1) {
+            rack.setPower(-liftRack);
+        }
+        if(values[5] == 1) {
+            rack.setPower(liftRack);
+        }
+        if((values[4] == 0) && (values[5] == 0)) {
+            rack.setPower(0);
+        }
+        if (values[4] == 1 && values[5] ==1) {
+            rack.setPower(0);
         }
 
-        encoderRunTest = rearLeft.getCurrentPosition();
+
+
+        /*     // Intake Controls values[6] /A values[7] /B
+        // hold to take in objects
+        double intakeSpeed = 1.0;
+        if (values[6] == 1) {
+            intake.setPower(intakeSpeed);
+        }
+        // hold to eject objects
+        if (values[7] == 1) {
+            intake.setPower(-intakeSpeed);
+        }
+        // do nothing when neither button is held
+        if (values[6] == 0 && values[7] == 0) {
+            intake.setPower(0);
+        }
+        if (values[6] == 1 && values[7] ==1){
+            intake.setPower(0);
+        }
+
+        */
+
+        // Extension Controls values[16] /LeftStickY
+        // variables used
+      /*  double extensionSpeed = 0.5;
+        if (values[16] >= 0.1) {
+            extension.setPower(extensionSpeed);
+        }
+        // hold to eject objects
+        if (values[16] <= -0.1) {
+            extension.setPower(-extensionSpeed);
+        }
+        // do nothing when neither button is held
+        if (values[16] > -0.1 && values[16] <0.1) {
+            extension.setPower(0);
+        }
 */
-        //
-        if((gamepad1.left_stick_x != 0)||(gamepad1.left_stick_y != 0))
-        {
-            leftValue = 0;
-            rightValue = 0;
-        }
-        else
-        {
-            leftValue = -gamepad1.right_stick_y + gamepad1.right_stick_x;
-            rightValue = -gamepad1.right_stick_y - gamepad1.right_stick_x;
 
-        }
 
-        //++ -> hmF + hmR > 1.5
-        //-- -> hmF + hmR < -1.5
-        //-+  & +- -> hmF + hmR ~= 0
-        //Multiplier for controls is 4/3
-        //For better results, take average of 2 controls, times 4/3, then divide by 2(or divide by 2 then multiply)
-        // Note: Y AXIS IS FLIPPED!!!
-
-        if((gamepad1.right_stick_x != 0) || (gamepad1.right_stick_y != 0))
-        {
-            LeftFrontLeft = 0;
-            LeftFrontRight = 0;
-            LeftRearLeft = 0;
-            LeftRearRight = 0;
+        // Lift arm controls values[14] /DpadUp values[15] /DpadDown
+        // variables used
+        double armSpeed = .1;
+        // Lift Drawer Slides
+        if (values[14] == 1) {
+            arm.setPower(armSpeed);
         }
-        else
-        {
-            if((Math.abs(gamepad1.left_stick_x) > 0) && (Math.abs(gamepad1.left_stick_y) < 0.1))
-            {
-                //strafe across
-                //to right, front negative; to left, rear negative
-                //-fL,-fR,-rL,-rR
-                LeftFrontLeft = -gamepad1.left_stick_x;
-                LeftFrontRight = -gamepad1.left_stick_x;
-                LeftRearLeft = gamepad1.left_stick_x;
-                LeftRearRight = gamepad1.left_stick_x;
-            }
-            else if((gamepad1.left_stick_x + gamepad1.left_stick_y > 1.25)||(gamepad1.left_stick_x + gamepad1.left_stick_y < -1.25)) //check,cannot identify
-            {
-                if((gamepad1.left_stick_x > 0)||(gamepad1.left_stick_y > 0))
-                {
-                    //bottom right corner, both vals ++
-                    //+rL,-fR
-                    LeftFrontLeft = 0;
-                    LeftFrontRight = -(((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                    LeftRearLeft = (((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                    LeftRearRight = 0;
-                }
-                else if((gamepad1.left_stick_x < 0)||(gamepad1.left_stick_y < 0))
-                {
-                    //top left corner both vals --
-                    //-rL,+fR
-                    LeftFrontLeft = 0;
-                    LeftFrontRight = (((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                    LeftRearLeft = -(((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                    LeftRearRight = 0;
-                }
-            }
-            else if(Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y) > 0)//check, direction changes at angle
-            {
-                if((gamepad1.left_stick_x > 0)||(gamepad1.left_stick_y < 0))
-                {
-                    //top right corner
-                    //-fL && +rR
-                    LeftFrontLeft = -(((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                    LeftFrontRight = 0;
-                    LeftRearLeft = 0;
-                    LeftRearRight = (((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                }
-                else if((gamepad1.left_stick_x < 0)||(gamepad1.left_stick_y > 0))
-                {
-                    //bottom left corner
-                    //+fl && -rR
-                    LeftFrontLeft = (((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                    LeftFrontRight = 0;
-                    LeftRearLeft = 0;
-                    LeftRearRight = -(((Math.abs(gamepad1.left_stick_x + gamepad1.left_stick_y))/2)*4/3);
-                }
-            }
-            else
-            {
-                //set multipliers 0 or 1
-                LeftFrontLeft = 0;
-                LeftFrontRight = 0;
-                LeftRearLeft = 0;
-                LeftRearRight = 0;
-            }
+        // Lower arm
+        if (values[15] == 1) {
+            arm.setPower(armSpeed);
+        }
+        // Hold Arm Still
+        if (values[14] == 0 && values[15] == 0) {
+            arm.setPower(0);
         }
 
-        scale(LeftFrontLeft);
-        scale(LeftFrontRight);
-        scale(LeftRearLeft);
-        scale(LeftRearRight);
 
-        //left joystick x axis = strafe
-        //diagonal = diagonal movement
-        hmfL = (-leftValue + LeftFrontLeft);
-        hmrL = (-leftValue + LeftRearLeft);
-        hmfR = (rightValue + LeftFrontRight);
-        hmrR = (rightValue + LeftRearRight);
-
-        scale(hmfL);
-        scale(hmrL);
-        scale(hmfR);
-        scale(hmrR);
-
-        frontLeft.setPower(hmfL*motorLimitMult);
-        rearLeft.setPower(hmrL*motorLimitMult);
-        frontRight.setPower(hmfR*motorLimitMult);
-        rearRight.setPower(hmrR*motorLimitMult);
-
-       // intake.setPower(intakeMult);
-       // extend.setPower(extendArm);
-
-        if(gamepad1.b)
-        {
-            rearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-            while(rearLeft.getCurrentPosition() < 500)
-            {
-                frontLeft.setPower(0.05);
-                rearLeft.setPower(0.05);
-                frontRight.setPower(-0.05);
-                rearRight.setPower(-0.05);
-
-            }
-        }
-
-        telemetry.addData("FrontLeft", hmfL*motorLimitMult);
-        telemetry.addData("RearLeft", hmrL*motorLimitMult);
-        telemetry.addData("FrontRight", hmfR*motorLimitMult);
-        telemetry.addData("RearRight", hmrR*motorLimitMult);
-        telemetry.addData("Encoder Return:", encoderRunTest);
-        telemetry.update();
     }
 
-    public double scale(double i)
-    {
-        double v = i;
-        v = Range.clip(v, -1, 1);
-        return v;
+
+    public void loopCode() {
+        updateControllerState();
+        setRobotState();
     }
 }

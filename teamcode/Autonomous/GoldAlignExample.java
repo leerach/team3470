@@ -39,6 +39,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
 @Autonomous(name="Depot Autonomous", group="DogeCV")
@@ -51,7 +52,8 @@ public class GoldAlignExample extends LinearOpMode {
     private DcMotor frontRight;
     private DcMotor right;
     private DcMotor arm;
-    private DcMotor flag;
+    private Servo flag;
+    private DcMotor intake;
 
 
     @Override
@@ -83,7 +85,8 @@ public class GoldAlignExample extends LinearOpMode {
         frontRight = hardwareMap.dcMotor.get("frontRight");
         right = hardwareMap.dcMotor.get("right");
         arm = hardwareMap.dcMotor.get("arm");
-        flag = hardwareMap.dcMotor.get("flag");
+        flag = hardwareMap.servo.get("flag");
+
 
 
 
@@ -94,9 +97,9 @@ public class GoldAlignExample extends LinearOpMode {
 
             //unlatch section
             rack.setPower(-1);
-            sleep(1400);
+            sleep(2100);
             rack.setPower(0);
-            sleep(200);
+            sleep(300);
             /*
             frontLeft.setPower(0.2);
             left.setPower(-0.2);
@@ -110,11 +113,11 @@ public class GoldAlignExample extends LinearOpMode {
             */
 
             // get into position to start sampling
-            moveLeft(0.2, 400);
+            moveLeft(0.2, 450);
             sleep(200);
             moveForward(.2, 500);
             sleep(200);
-            moveRight(.2, 200);
+            moveRight(.2, 450);
             sleep(200);
             moveForward(.2, 500);
             sleep(200);
@@ -163,22 +166,30 @@ public class GoldAlignExample extends LinearOpMode {
             sleep(sleepTime);
             moveLeft(0.2,200);
             sleep(sleepTime);
-            moveBackward(0.6,1000);
+            moveBackward(0.6,750);
 
             //Drop down flag
+            /*
             sleep(200);
             flag.setPower(-0.75);
             sleep(250);
             flag.setPower(0);
+            */
+            double flagPosition = flag.getPosition();
+            flag.setPosition(flagPosition + .1);
+            sleep(300);
+            flag.setPosition(0);
+            sleep(300);
+            flag.setPosition(1);
 
 
             //Go away to end
-            sleep(400);
+            sleep(500);
             frontLeft.setPower(-1);
             left.setPower(-1);
             frontRight.setPower(0.95);
             right.setPower(0.95);
-            sleep(1900);
+            sleep(2300);
             frontLeft.setPower(0);
             left.setPower(0);
             frontRight.setPower(0);
